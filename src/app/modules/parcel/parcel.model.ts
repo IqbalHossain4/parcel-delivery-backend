@@ -1,5 +1,6 @@
 import { model, Schema } from "mongoose";
 import { IParcel, IParcelStatus,IStatusLog } from "./parcel.interface";
+import { required } from "zod/mini";
 
 
 const statusLogSchema = new Schema<IStatusLog>(
@@ -40,11 +41,13 @@ const parcelSchema = new Schema<IParcel>(
       required: true,
     },
     receiver: {
-      name:String, phone:String, address:String, city:String, postalCode:String
-    },
-    address: {
-      type: String,
-      required: true,
+      name:{
+        type:String,
+        required: true,
+      }, email:String, phone:{
+        type:String,
+        required: true
+      }, address:{type:String, required: true}, city:String, postalCode:String
     },
     fee: {
       type: Number,

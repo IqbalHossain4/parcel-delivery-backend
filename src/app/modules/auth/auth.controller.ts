@@ -154,10 +154,39 @@ res.redirect(`${envVars.FRONTEND_URL}/${redirectTo}`)
 
 })
 
+
+const changePassword = catchAsync(async(req:Request, res:Response, next:NextFunction)=>{
+const newPassword =  req.body.newPassword;
+const oldPassword = req.body.oldPassword;
+const decodedToken = req.user as JwtPayload;
+const result = await AuthService.changePassword(oldPassword, newPassword, decodedToken as JwtPayload)
+sendResponse(res, {
+  statusCode: 200,
+  success: true,
+  message: "Password changed successfully",
+  data: result,
+});
+})
+
+
+const forgotPassword = catchAsync(async(req:Request, res:Response, next:NextFunction)=>{
+const {email}= req.body;
+await AuthService.forgotPassword(email);
+sendResponse(res, {
+  statusCode: 200,
+  success: true,
+  message: "Password reset link sent successfully",
+  data: null,
+});
+})
+
+
 export const AuthController = {
   loginWithCredentials,
   getNewAccessToken,
   logout,
   googleAuth,
-  googleCallback
+  googleCallback,
+  changePassword,
+  forgotPassword
 };

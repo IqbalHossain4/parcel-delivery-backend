@@ -51,9 +51,8 @@ const getSenderParcels =  catchAsync(async(req:Request, res:Response, next:NextF
 
 
 const getReceiverParcels = catchAsync(async(req:Request, res:Response, next:NextFunction) => {
-const decodedToken = req.user as JwtPayload
- 
-    const result = await ParcelService.getReceiverParcels(decodedToken);
+const {emailOrPhone} = req.query
+const result = await ParcelService.getReceiverParcels(emailOrPhone as string);
     sendResponse(res, {
         statusCode: 200,
         success: true,
@@ -84,6 +83,18 @@ const cancelParcel = catchAsync(async(req:Request, res:Response, next:NextFuncti
         message: "Parcel canceled successfully",
         data: result,
       });
+})
+
+
+const getParcelById = catchAsync(async(req:Request, res:Response, next:NextFunction)=>{
+const id= req.params.id;
+const result = await ParcelService.getParcelById(id);
+sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Parcel fetched successfully",
+    data: result,
+  });
 })
 
 
@@ -127,8 +138,8 @@ sendResponse(res, {
 
 
 const trackParcel = catchAsync(async(req:Request, res:Response, next:NextFunction)=>{
-const id = req.params.trackingId;
-const result = await ParcelService.trackParcel(id);
+const {trackingId} = req.params;
+const result = await ParcelService.trackParcel(trackingId);
 sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -143,6 +154,7 @@ export const ParcelController = {
     getSenderParcels,
      getReceiverParcels,
       confirmDelivery,
+      getParcelById,
        updateStatus,
        blockParcel,
        assignParcel,

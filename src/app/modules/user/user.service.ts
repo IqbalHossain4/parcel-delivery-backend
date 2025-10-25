@@ -1,7 +1,6 @@
 import bcrypt from "bcryptjs";
 import { IAuthProvider, IUser, Role } from "./user.interface";
 import { Users } from "./user.model";
-import { get } from "mongoose";
 import AppError from "../../errorHelper/AppError";
 import { JwtPayload } from "jsonwebtoken";
 import { QueryBuilder } from "../../utils/QueryBuilder";
@@ -73,7 +72,7 @@ const updateUser = async (
     throw new AppError(404, "User not found");
   }
 
-  if (decodedToken.role === Role.admin) {
+  if (decodedToken.role !== Role.admin) {
     throw new AppError(401, "Unauthorized");
   }
 

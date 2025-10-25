@@ -23,12 +23,12 @@ export interface IStatusLog {
 export interface IParcel {
   type: string;
   weight?: number;
-  address: string;
   fee?: number;
   sender: Types.ObjectId;
   receiver: {
     name: string;
     address: string;
+    email?: string;
     phone: string;
     city: string;
     postalCode:string;

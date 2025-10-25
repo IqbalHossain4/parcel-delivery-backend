@@ -5,10 +5,10 @@ import AppError from "../../errorHelper/AppError"
 import { Parcels } from "./parcel.model"
 import { QueryBuilder } from "../../utils/QueryBuilder"
 import { Types } from "mongoose"
-import { Role } from "../user/user.interface"
 
 const createParcel=async(payload:IParcel, decodedToken:JwtPayload)=>{
     const isUserExist =  await Users.findById(decodedToken.userId)
+
     if(!isUserExist){
         throw new AppError(404,"User not found")
     }
@@ -40,10 +40,9 @@ return result
 }
 
 
-const getReceiverParcels = async(decodedToken:JwtPayload)=>{
-    const result = await Parcels.find({receiver:decodedToken.userId}).sort({createdAt:-1})
+const getReceiverParcels = async(emailOrPhone:string)=>{
+    const result = await Parcels.find({$or:[{"receiver.email":emailOrPhone},{"receiver.phone":emailOrPhone}]}).populate("sender").sort({createdAt:-1})
     return result
-
 }
 
 
@@ -77,6 +76,12 @@ const cancelParcel = async(id:string)=>{
    })
  await parcel.save();
  return parcel
+}
+
+
+const getParcelById= async(id:string)=>{
+    const result = await Parcels.findById(id).populate("sender").populate("receiver").populate("assignedTo");
+    return result
 }
 
 
@@ -141,9 +146,9 @@ return parcel
 
 }
 
-const trackParcel= async(id:string)=>{
+const trackParcel= async(trackingId:string)=>{
 
-    const parcel = await Parcels.findById(id).select("trackingId status receiver statusLogs type weight fee createdAt deliveredAt isBlocked");
+    const parcel = await Parcels.findOne({trackingCode:trackingId}).select("trackingId status receiver statusLogs type weight fee createdAt deliveredAt isBlocked");
     if (!parcel) {
     throw new AppError(404, "Parcel not found");
   }
@@ -162,6 +167,7 @@ export const ParcelService={
     getSenderParcels,
     getReceiverParcels,
     confirmDelivery,
+    getParcelById,
     updateStatus,
     blockParcel,
     assignParcel,
