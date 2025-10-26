@@ -41,6 +41,58 @@ cd parcel-delivery-backend
 <h3>2️⃣ Install Dependencies</h3>
 npm install
 
+<h3>3️⃣ Configure environment (.env)</h3>
+
+# =========================
+# 🔧 SERVER CONFIGURATION
+# =========================
+PORT=5000
+NODE_ENV=development
+
+# =========================
+# 🗄️ DATABASE
+# =========================
+DB_URL=mongodb+srv://<username>:<password>@cluster0.mongodb.net/parcel-delivery-backend
+
+# =========================
+# 🔐 BCRYPT CONFIG
+# =========================
+BCRYPT_SALT_ROUND=10
+
+# =========================
+# 🔑 JWT CONFIG
+# =========================
+JWT_ACCESS_SECRET=your_jwt_access_secret
+JWT_ACCESS_EXPIRES=1d
+JWT_REFRESH_SECRET=your_jwt_refresh_secret
+JWT_REFRESH_EXPIRES=7d
+
+# =========================
+# 🌐 FRONTEND URL
+# =========================
+FRONTEND_URL=http://localhost:5173
+
+# =========================
+# 🔓 GOOGLE AUTH
+# =========================
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+GOOGLE_CALLBACK_URL=http://localhost:5000/api/v1/auth/google/callback
+
+# =========================
+# 📧 SMTP CONFIG (for email)
+# =========================
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_app_password
+SMTP_FROM=your_email@gmail.com
+
+# =========================
+# 🗺️ GOOGLE MAPS API
+# =========================
+GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+
 <h3>4️⃣ Run the Server</h3>
 npm run dev
 
@@ -109,3 +161,6 @@ npm run dev
 | Method | Endpoint | Description | Access |
 |--------|-----------|-------------|--------|
 | **GET** | `/api/v1/parcels/track/:trackingId` | Track parcel using tracking ID | Sender / Receiver |
+
+
+Portman Doc: https://documenter.getpostman.com/view/46353691/2sB3Wk14eN
