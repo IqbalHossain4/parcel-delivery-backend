@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Server } from "http";
 import mongoose from "mongoose";
@@ -8,7 +9,7 @@ let server: Server;
 
 const startServer = async () => {
   try {
-    await mongoose.connect(envVars.DB_URL as string);
+    await mongoose.connect(envVars.DB_URL);
     server = app.listen(envVars.PORT, () => {
       console.log(`Server is running on port ${envVars.PORT}`);
     });

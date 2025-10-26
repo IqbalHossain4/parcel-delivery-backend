@@ -33,19 +33,22 @@ const getAllParcels =  catchAsync(async(req:Request, res:Response, next:NextFunc
         statusCode: 200,
         success: true,
         message: "Parcels fetched successfully",
-        data: result,
+        data: {
+          meta: result.meta,
+          data: result.data,
+        },
       });
 })
 
 
 const getSenderParcels =  catchAsync(async(req:Request, res:Response, next:NextFunction) => {
     const decodedToken  =  req.user as JwtPayload;
-    const resut = await ParcelService.getSenderParcels(decodedToken)
+    const result = await ParcelService.getSenderParcels(decodedToken)
     sendResponse(res, {
         statusCode: 200,
         success: true,
         message: "Parcels fetched successfully",
-        data: resut,
+        data: result,
       });
 })
 
@@ -101,7 +104,8 @@ sendResponse(res, {
 const updateStatus = catchAsync(async(req:Request, res:Response, next:NextFunction)=>{
 const id =  req.params.id;
 const payload = req.body;
-const result = await ParcelService.updateStatus(id, payload);
+const decodedToken = req.user as JwtPayload
+const result = await ParcelService.updateStatus(id, payload,decodedToken);
 sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -123,11 +127,11 @@ sendResponse(res, {
 })
 
 
-const assignParcel = catchAsync(async(req:Request, res:Response, next:NextFunction)=>{
+const assignDeliveryPerson = catchAsync(async(req:Request, res:Response, next:NextFunction)=>{
 const id = req.params.id;
 const decodedToken = req.user as JwtPayload
 const payload = req.body;
-const result = await ParcelService.assignParcel(id, decodedToken, payload);
+const result = await ParcelService.assignDeliveryPerson(id, decodedToken, payload);
 sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -157,7 +161,7 @@ export const ParcelController = {
       getParcelById,
        updateStatus,
        blockParcel,
-       assignParcel,
+       assignDeliveryPerson,
         cancelParcel,
         trackParcel
       };

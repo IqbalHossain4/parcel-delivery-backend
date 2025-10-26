@@ -37,7 +37,7 @@ export interface IParcel {
   status: IParcelStatus;
   trackingCode: string;
   statusLog?: IStatusLog[];
-  assignedTo?:Types.ObjectId
+  assignedTo?:Types.ObjectId;
   isFlagged: boolean;
   isBlocked: boolean;
   dispatchedAt?:Date;

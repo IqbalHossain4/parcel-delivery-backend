@@ -1,6 +1,11 @@
 import z from "zod";
 import { IParcelStatus } from "./parcel.interface";
+import mongoose from "mongoose";
 
+
+const objectIdSchema=  z.string().refine((val)=>mongoose.Types.ObjectId.isValid(val),{
+    message:"Invalid Object Id"
+})
 
 
 export const createParcelZodSchema = z.object({
@@ -8,10 +13,8 @@ export const createParcelZodSchema = z.object({
     .string()
     .min(2, { message: "Type must be at least 2 characters long" })
     .max(50, { message: "Type must be at most 50 characters long" }),
-
   weight: z.number().optional(),
   fee: z.number().optional(),
-  sender: z.string(),
   receiver: z.object({
     name: z.string(),
     address: z.string(),
@@ -20,9 +23,7 @@ export const createParcelZodSchema = z.object({
     city: z.string().optional(),
     postalCode: z.string(),
   }),
-
-  assignedTo: z.string().optional(),
-
+  
   deliveryDate: z.preprocess(
     (val) => (val ? new Date(val as string) : undefined),
     z.date()
@@ -60,8 +61,6 @@ export const updateParcelZodSchema =z.object({
   type: z.string().optional(),
   weight: z.number().optional(),
   fee: z.number().optional(),
-  sender: z.string().optional(),
-
   receiver: z
     .object({
       name: z.string().optional(),
@@ -85,12 +84,12 @@ export const updateParcelZodSchema =z.object({
     .array(
       z.object({
         status: z.string().optional(),
-        updatedBy: z.string(),
+        updatedBy: z.string().optional(),
         note: z.string().optional(),
       })
     )
     .optional(),
-  assignedTo: z.string().optional(),
+  assignedTo: objectIdSchema.optional(),
   isFlagged: z.boolean().optional(),
   isBlocked: z.boolean().optional(),
   dispatchedAt: z

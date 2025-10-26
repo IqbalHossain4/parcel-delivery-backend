@@ -1,5 +1,4 @@
 import { JwtPayload } from 'jsonwebtoken';
-import { Response } from 'express';
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextFunction, Request, Response } from "express";
 import { AuthService } from "./auth.service";

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextFunction, Request, Response } from "express";
@@ -8,7 +9,7 @@ import { handleCastError } from "../helpers/handleCastError";
 import { handleZodError } from "../helpers/handleZodError";
 import { handleValidationError } from "../helpers/handleValidationError";
 import AppError from "../errorHelper/AppError";
-import { success } from "zod";
+
 
 export const globalErrorHandler = async (
   err: any,
@@ -16,7 +17,7 @@ export const globalErrorHandler = async (
   res: Response,
   next: NextFunction
 ) => {
-  if (envVars.NODE_ENV === "development") {
+  if (envVars.NODE_ENV === "production") {
     console.log(err);
   }
 
@@ -62,7 +63,7 @@ export const globalErrorHandler = async (
     success: false,
     message,
     errorSources,
-    err: envVars.NODE_ENV === "development" ? err : null,
-    stack: envVars.NODE_ENV === "development" ? err.stack : null,
+    err: envVars.NODE_ENV === "production" ? err : null,
+    stack: envVars.NODE_ENV === "production" ? err.stack : null,
   });
 };

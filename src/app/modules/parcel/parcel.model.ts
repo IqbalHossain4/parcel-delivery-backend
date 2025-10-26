@@ -1,6 +1,5 @@
 import { model, Schema } from "mongoose";
 import { IParcel, IParcelStatus,IStatusLog } from "./parcel.interface";
-import { required } from "zod/mini";
 
 
 const statusLogSchema = new Schema<IStatusLog>(
@@ -38,7 +37,6 @@ const parcelSchema = new Schema<IParcel>(
     sender: {
       type: Schema.Types.ObjectId,
       ref: "Users",
-      required: true,
     },
     receiver: {
       name:{

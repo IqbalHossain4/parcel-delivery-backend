@@ -13,14 +13,23 @@ const createParcel=async(payload:IParcel, decodedToken:JwtPayload)=>{
         throw new AppError(404,"User not found")
     }
 
-    const parcel= await Parcels.create(payload)
+    if(isUserExist.role !== "sender"){
+        throw new AppError(401,"Unauthorized")
+    }
+
+    payload.sender = decodedToken.userId
+
+    const parcel= await Parcels.create({
+        ...payload,
+        sender:decodedToken.userId
+    })
 
     return parcel
 }
 
 
 const getAllParcels=async(query:Record<string,string>)=>{
-    const queryBuilder = new QueryBuilder(Parcels.find(),query)
+    const queryBuilder = new QueryBuilder(Parcels.find(), query)
     const parcels = await queryBuilder.paginate().fields().filter().sort();
     const [data, meta] = await Promise.all([
         parcels.build(),
@@ -35,7 +44,7 @@ const getAllParcels=async(query:Record<string,string>)=>{
 
 
 const getSenderParcels =  async(decodedToken:JwtPayload)=>{
-const result =  await Parcels.find({sender:decodedToken.userId}).populate("receiver").sort({createdAt:-1})
+const result =  await Parcels.find({sender:decodedToken.userId})
 return result
 }
 
@@ -47,10 +56,10 @@ const getReceiverParcels = async(emailOrPhone:string)=>{
 
 
 const confirmDelivery =  async(id:string)=>{
-const userIsExist =  await Users.findById(id)
+const isPacelExist =  await Parcels.findById(id)
 
-if(!userIsExist){
-    throw new AppError(404, "User not found")
+if(!isPacelExist){
+    throw new AppError(404, "Parcel not found")
 }
 
 const result = await Parcels.findByIdAndUpdate(id,{status:IParcelStatus.delivered},{new:true, runValidators:true})
@@ -58,34 +67,42 @@ return result
 }
 
 const cancelParcel = async(id:string)=>{
-    const parcel =  await Parcels.findById({_id:id});
+    const parcel =  await Parcels.findById(id);
+
 
     if(!parcel){
         throw new AppError(404,"Parcel not found")
     }
 
-    if(!["requested","approved"].includes(parcel.status)){
-        throw new AppError(400,"Parcel cannot be cancelled")
-    }
+   if (!parcel.status || !["requested", "approved"].includes(parcel.status)) {
+  throw new AppError(400, "Parcel cannot be cancelled");
+}
 
-   parcel.status = IParcelStatus.cancelled;
-   parcel.statusLog?.push({
-    status:IParcelStatus.cancelled,
+    parcel.status = IParcelStatus.cancelled;
+
+  parcel.statusLog = parcel.statusLog || [];
+  parcel.statusLog.push({
+    status: IParcelStatus.cancelled,
     updatedBy: parcel.sender,
-    note:"Parcel cancelled by sender"
-   })
+    note: "Parcel cancelled by sender",
+  });
+ 
  await parcel.save();
  return parcel
 }
 
 
 const getParcelById= async(id:string)=>{
-    const result = await Parcels.findById(id).populate("sender").populate("receiver").populate("assignedTo");
+    const parcel= await Parcels.findById(id)
+    if(!parcel){
+        throw new AppError(404,"Parcel not found")
+    }
+    const result = await parcel.populate("sender")
     return result
 }
 
 
-const updateStatus=async(id:string, payload:IStatusLog)=>{
+const updateStatus=async(id:string, payload:IStatusLog, decodedToken:JwtPayload)=>{
 const isParcelExist =  await Parcels.findById(id);
 
 if(!isParcelExist){
@@ -95,7 +112,7 @@ if(!isParcelExist){
 isParcelExist.status = payload.status;
 isParcelExist.statusLog?.push({
     status:payload.status,
-    updatedBy: payload.updatedBy,
+    updatedBy: decodedToken.userId,
     note:payload.note
 })
 
@@ -127,19 +144,19 @@ return result
 }
 
 
-const assignParcel = async(id:string,decodedToken:JwtPayload, payload:string)=>{
+const assignDeliveryPerson = async(id:string, decodedToken:JwtPayload, payload:Record<string,Types.ObjectId>)=>{
     const parcel = await Parcels.findById(id);
 
     if(!parcel){
         throw new AppError(404,"Parcel not found")
     }
 
-
-    parcel.assignedTo = new Types.ObjectId(payload)
+parcel.assignedTo = payload.assignedTo;
+parcel.status = IParcelStatus.dispatched
 parcel.statusLog?.push({
-    status:IParcelStatus.approved,
+    status:IParcelStatus.dispatched,
     updatedBy:decodedToken.userId,
-    note:"Parcel assigned to driver"
+    note:"Parcel assigned to delivery person"
 })
 await parcel.save();
 return parcel
@@ -170,7 +187,7 @@ export const ParcelService={
     getParcelById,
     updateStatus,
     blockParcel,
-    assignParcel,
+    assignDeliveryPerson,
     cancelParcel,
     trackParcel
 }

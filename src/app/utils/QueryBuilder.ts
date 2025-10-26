@@ -1,7 +1,6 @@
 import { Query } from "mongoose";
 
 
-
 export class QueryBuilder<T>{
  public modelQuery:Query<T[],T>;
 public readonly query:Record<string, string>
@@ -63,7 +62,7 @@ build(){
 }
 
 async getMeta(){
-    const totalDocuments = await this.modelQuery.countDocuments();
+    const totalDocuments = await this.modelQuery.model.find(this.modelQuery.getQuery()).countDocuments();
     const page = Number(this.query.page) || 1;
     const limit = Number(this.query.limit) || 10;
     const totalPage = Math.ceil(totalDocuments / limit);
@@ -74,7 +73,5 @@ async getMeta(){
         total:totalDocuments
     }
 }
-
-
 
 }
