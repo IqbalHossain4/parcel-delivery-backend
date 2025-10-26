@@ -29,14 +29,7 @@ route.patch("/assign/:id", checkAuth(Role.admin),validateRequest(updateParcelZod
 
 
 //tracking
-route.get("/track/:trackingId", checkAuth(Role.receiver,Role.sender),
-
-
-
-
-
-
-ParcelController.trackParcel)
+route.get("/track/:trackingId", checkAuth(Role.receiver,Role.sender), ParcelController.trackParcel)
 
 
 export const ParcelRoute = route

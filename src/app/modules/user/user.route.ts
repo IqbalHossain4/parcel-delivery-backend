@@ -13,7 +13,7 @@ route.post(
   UserController.createUser
 );
 
-route.get("/allUser", UserController.getAllUsers);
+route.get("/allUser", checkAuth(Role.admin), UserController.getAllUsers);
 
 route.get(
   "/me",
