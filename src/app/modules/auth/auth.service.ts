@@ -71,6 +71,71 @@ const scope = [
    return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
 }
 
+const googleCallback = async(code:string)=>{
+  const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        code,
+        client_id: envVars.GOOGLE_CLIENT_ID,
+        client_secret: envVars.GOOGLE_CLIENT_SECRET,
+        redirect_uri: envVars.GOOGLE_CALLBACK_URL,
+        grant_type: "authorization_code",
+      }),
+    });
+
+    if (!tokenRes.ok) {
+      throw new AppError(400, "Failed to exchange code for token");
+    }
+
+    const { access_token } = await tokenRes.json();
+
+    const userRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+      headers: { Authorization: `Bearer ${access_token}` },
+    });
+
+    if (!userRes.ok) {
+      throw new AppError(400, "Failed to fetch user info from Google");
+    }
+
+    const googleUser = await userRes.json();
+
+   
+    let isUserExist = await Users.findOne({ email: googleUser.email });
+
+    
+    if (!isUserExist) {
+      isUserExist = await Users.create({
+        email: googleUser.email,
+        name: googleUser.name,
+        picture: googleUser.picture,
+        auths: [
+          {
+            provider: "google",
+            providerId: googleUser.id,
+          },
+        ],
+      });
+    }
+  
+    if (!isUserExist) throw new AppError(404, "User not found");
+
+    if (isUserExist.status === Status.isBlocked)
+      throw new AppError(401, "User is blocked");
+
+    if (isUserExist.status === Status.isInactive)
+      throw new AppError(401, "User is inactive");
+
+    if (isUserExist.isDeleted) throw new AppError(401, "User is deleted");
+
+
+    const userToken = createUserToken(isUserExist);
+
+    return { userToken };
+  }
+
+
+
 const changePassword = async(oldPassword:string,newPassword:string,decodedToken:JwtPayload)=>{
   const user = await Users.findById(decodedToken.userId);
   const isOldPasswordMatch = await bcrypt.compare(oldPassword,user?.password as string);
@@ -127,5 +192,6 @@ export const AuthService = {
   getNewAccessToken,
   googleAuth,
   changePassword,
-  forgotPassword
+  forgotPassword,
+  googleCallback
 };

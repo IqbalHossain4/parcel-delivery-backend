@@ -80,32 +80,24 @@ res.redirect(result);
 })
 
 
-const googleCallback =  catchAsync(async(req:Request, res:Response, next:NextFunction)=>{
-const code = req.query.code as string;
-let redirectTo = req.query.state ? (req.query.state as string):"";
-if(redirectTo.startsWith("/")){
-  redirectTo = redirectTo.slice(1)
-}
-const tokenRes = await fetch("https://oauth2.googleapis.com/token",{
-  method:"POST",
-  headers:{"Content-Type":"application/json"},
-  body:JSON.stringify({
-    code,
-    client_id:envVars.GOOGLE_CLIENT_ID,
-    client_secret:envVars.GOOGLE_CLIENT_SECRET,
-    redirect_uri:envVars.GOOGLE_CALLBACK_URL,
-    grant_type:"authorization_code"
-  })
-})
+const googleCallback =  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const code = req.query.code as string;
+    let redirectTo = req.query.state ? (req.query.state as string) : "";
 
-   if (!tokenRes.ok) {
-  throw new AppError(400, "Failed to exchange code for token");
-}
+    if (redirectTo.startsWith("/")) {
+      redirectTo = redirectTo.slice(1);
+    }
 
-const {access_token } = await tokenRes.json();
-const userRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo",{
-  headers: { Authorization: `Bearer ${access_token}`}
-})
+    // Call service logic
+    const { userToken } = await AuthService.googleCallback(code);
+
+    // Set token cookie
+    setAuthCookie(res, userToken);
+
+    // Redirect to frontend
+    res.redirect(`${envVars.FRONTEND_URL}/${redirectTo}`);
+  }),
+};
 
 if (!userRes.ok) {
   throw new AppError(400, "Failed to fetch user info from Google");

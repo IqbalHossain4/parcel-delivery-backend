@@ -13,7 +13,6 @@ It supports sender, receiver, and admin roles with full authentication, parcel m
 <p>✅ Admin Control (block, update, assign delivery)</p>
 <p>✅ Google Distance API-based Fee Calculation (optional)</p>
 <p>✅ Zod-based Request Validation</p>
-<p>✅ Modular Folder Structure</p>
 </hr>
 
 <h2>🧱 Tech Stack</h2>
@@ -27,7 +26,6 @@ It supports sender, receiver, and admin roles with full authentication, parcel m
 | Authorization | **Role-based (Admin, User, Delivery Person)** |
 | Utilities | **Bcrypt**, **Multer**, **QueryBuilder** |
 | Environment | `.env` configuration support |
-| Deployment | Ready for production |
 
 </hr>
 
