@@ -8,7 +8,6 @@ import AppError from "../../errorHelper/AppError";
 import { setAuthCookie } from "../../utils/setCookie";
 import { createUserToken } from '../../utils/userToken';
 import { envVars } from '../../config/env';
-import { Users } from '../user/user.model';
 import { Status } from '../user/user.interface';
 
 const loginWithCredentials = catchAsync(
@@ -88,64 +87,15 @@ const googleCallback =  catchAsync(async (req: Request, res: Response, next: Nex
       redirectTo = redirectTo.slice(1);
     }
 
-    // Call service logic
+    
     const { userToken } = await AuthService.googleCallback(code);
 
-    // Set token cookie
+  
     setAuthCookie(res, userToken);
 
-    // Redirect to frontend
+   
     res.redirect(`${envVars.FRONTEND_URL}/${redirectTo}`);
-  }),
-};
-
-if (!userRes.ok) {
-  throw new AppError(400, "Failed to fetch user info from Google");
-}
-
-
-const googleUser = await userRes.json();
-
-let isUserExist = await Users.findOne({email:googleUser.email})
-
-
-if(!isUserExist){
-isUserExist = await Users.create({
-  email:googleUser.email,
-  name:googleUser.name,
-  picture:googleUser.picture,
-  auths:[{
-    provider:"google",
-    providerId:googleUser.id
-  }],
-})
-}
-
-if(!isUserExist){
-  throw new AppError(404,"User not found")
-}
-
-if(isUserExist.status=== Status.isBlocked){
-  throw new AppError(401,"User is blocked")
-}
-
-if(isUserExist.status=== Status.isInactive){
-  throw new AppError(401,"User is inactive")
-}
-
-if(isUserExist.isDeleted){
-  throw new AppError(401,"User is deleted")
-}
-
-
-const userToken = createUserToken(isUserExist)
-setAuthCookie(res,userToken)
-
-
-res.redirect(`${envVars.FRONTEND_URL}/${redirectTo}`)
-
-})
-
+  })
 
 const changePassword = catchAsync(async(req:Request, res:Response, next:NextFunction)=>{
 const newPassword =  req.body.newPassword;
