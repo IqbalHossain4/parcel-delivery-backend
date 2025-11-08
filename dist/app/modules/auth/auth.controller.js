@@ -18,10 +18,7 @@ const catchAsync_1 = require("../../utils/catchAsync");
 const sendResponse_1 = require("../../utils/sendResponse");
 const AppError_1 = __importDefault(require("../../errorHelper/AppError"));
 const setCookie_1 = require("../../utils/setCookie");
-const userToken_1 = require("../../utils/userToken");
 const env_1 = require("../../config/env");
-const user_model_1 = require("../user/user.model");
-const user_interface_1 = require("../user/user.interface");
 const loginWithCredentials = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const loginInfo = yield auth_service_1.AuthService.loginWithCredentials(req.body);
     (0, setCookie_1.setAuthCookie)(res, loginInfo);
@@ -79,53 +76,7 @@ const googleCallback = (0, catchAsync_1.catchAsync)((req, res, next) => __awaite
     if (redirectTo.startsWith("/")) {
         redirectTo = redirectTo.slice(1);
     }
-    const tokenRes = yield fetch("https://oauth2.googleapis.com/token", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            code,
-            client_id: env_1.envVars.GOOGLE_CLIENT_ID,
-            client_secret: env_1.envVars.GOOGLE_CLIENT_SECRET,
-            redirect_uri: env_1.envVars.GOOGLE_CALLBACK_URL,
-            grant_type: "authorization_code"
-        })
-    });
-    if (!tokenRes.ok) {
-        throw new AppError_1.default(400, "Failed to exchange code for token");
-    }
-    const { access_token } = yield tokenRes.json();
-    const userRes = yield fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
-        headers: { Authorization: `Bearer ${access_token}` }
-    });
-    if (!userRes.ok) {
-        throw new AppError_1.default(400, "Failed to fetch user info from Google");
-    }
-    const googleUser = yield userRes.json();
-    let isUserExist = yield user_model_1.Users.findOne({ email: googleUser.email });
-    if (!isUserExist) {
-        isUserExist = yield user_model_1.Users.create({
-            email: googleUser.email,
-            name: googleUser.name,
-            picture: googleUser.picture,
-            auths: [{
-                    provider: "google",
-                    providerId: googleUser.id
-                }],
-        });
-    }
-    if (!isUserExist) {
-        throw new AppError_1.default(404, "User not found");
-    }
-    if (isUserExist.status === user_interface_1.Status.isBlocked) {
-        throw new AppError_1.default(401, "User is blocked");
-    }
-    if (isUserExist.status === user_interface_1.Status.isInactive) {
-        throw new AppError_1.default(401, "User is inactive");
-    }
-    if (isUserExist.isDeleted) {
-        throw new AppError_1.default(401, "User is deleted");
-    }
-    const userToken = (0, userToken_1.createUserToken)(isUserExist);
+    const { userToken } = yield auth_service_1.AuthService.googleCallback(code);
     (0, setCookie_1.setAuthCookie)(res, userToken);
     res.redirect(`${env_1.envVars.FRONTEND_URL}/${redirectTo}`);
 }));

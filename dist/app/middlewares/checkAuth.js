@@ -20,7 +20,7 @@ const user_interface_1 = require("../modules/user/user.interface");
 const AppError_1 = __importDefault(require("../errorHelper/AppError"));
 const checkAuth = (...authRoles) => (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const accessToken = req.headers.authorization;
+        const accessToken = req.headers.authorization || req.cookies.accessToken;
         if (!accessToken) {
             throw new AppError_1.default(401, "Access token not found");
         }
